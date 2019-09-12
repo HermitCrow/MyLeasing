@@ -31,6 +31,10 @@ namespace MyLeasing.Web.Controllers
                 var result = await _userHelper.LoginAsync(model);
                 if (result.Succeeded)
                 {
+                    if (Request.Query.Keys.Contains("ReturnUrl"))
+                    {
+                        return RedirectToAction(Request.Query["ReturnUrl"].First());
+                    }
                     return RedirectToAction("Index","Home");
                 }
             }
