@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MyLeasing.Web.Data;
 using MyLeasing.Web.Data.Entities;
+using MyLeasing.Web.Helpers;
+using MyLeasing.Web.Models;
 
 namespace MyLeasing.Web.Controllers
 {
@@ -15,10 +17,14 @@ namespace MyLeasing.Web.Controllers
     public class OwnersController : Controller
     {
         private readonly DataContext _dataContext;
+        private readonly IUserHelper _userHelper;
 
-        public OwnersController(DataContext dataContext)
+        public OwnersController(
+            DataContext dataContext,
+            IUserHelper userHelper)
         {
             _dataContext = dataContext;
+            _userHelper = userHelper;
         }
 
         // GET: Owners
@@ -30,7 +36,7 @@ namespace MyLeasing.Web.Controllers
                 .Include(o => o.Contracts));
         }
 
-        // GET: Owners/Details/5
+        
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -54,26 +60,60 @@ namespace MyLeasing.Web.Controllers
             return View(owner);
         }
 
-        // GET: Owners/Create
+       
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Owners/Create
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id")] Owner owner)
+        public async Task<IActionResult> Create(AddUserViewModel model)
         {
             if (ModelState.IsValid)
             {
-                _dataContext.Add(owner);
-                await _dataContext.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var user = await CreateUserAsync(model);
+
+                if(user != null)
+                {
+                    var owner = new Owner
+                    {
+                        Contracts = new List<Contract>(),
+                        Properties = new List<Property>(),
+                        User = user
+                    };
+                    _dataContext.Owners.Add(owner);
+                    await _dataContext.SaveChangesAsync();
+                    return RedirectToAction("Index");
+                }
+
+                ModelState.AddModelError(string.Empty, "User whit this email already exists");
             }
-            return View(owner);
+            return View(model);
+        }
+
+        private async Task<User> CreateUserAsync(AddUserViewModel model)
+        {
+            var user = new User
+            {
+                Document = model.Document,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                Email = model.Username,
+                PhoneNumber = model.PhoneNumber,
+                Address = model.Address,
+                UserName = model.Username
+            };
+
+            var result = await _userHelper.AddUserAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                user = await _userHelper.GetUserByEmailAsync(model.Username);
+                await _userHelper.AddUserToRoleAsync(user, "Owner");
+                return user;
+            }
+
+            return null;
         }
 
         // GET: Owners/Edit/5
