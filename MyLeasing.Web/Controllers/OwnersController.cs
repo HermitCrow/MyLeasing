@@ -39,7 +39,13 @@ namespace MyLeasing.Web.Controllers
             }
 
             var owner = await _dataContext.Owners
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .Include(o => o.User)
+                .Include(o => o.Properties)
+                .ThenInclude(p => p.PropertyImages)
+                .Include(o => o.Contracts)
+                .ThenInclude(c => c.Lessee)
+                .Include(l => l.User)
+                .FirstOrDefaultAsync(o => o.Id == id);
             if (owner == null)
             {
                 return NotFound();
