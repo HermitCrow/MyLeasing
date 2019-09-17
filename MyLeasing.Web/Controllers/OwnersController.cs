@@ -243,6 +243,27 @@ namespace MyLeasing.Web.Controllers
             return View(model);            
         }
 
-        
+        public async Task<IActionResult> EditProperty(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var property = await _dataContext.Properties
+                .Include(p => p.Owner)
+                .Include(p => p.PropertyType)
+                .FirstOrDefaultAsync(p => p.Id == id);
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            var model = _converterHelper.ToPropertyViewModel(property);
+            return View(model);
+        }
+
+      
+
     }
 }
