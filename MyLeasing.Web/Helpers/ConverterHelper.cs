@@ -36,6 +36,26 @@ namespace MyLeasing.Web.Helpers
             };
         }
 
+        public ContractViewModel ToContractViewModel(Contract contract)
+        {
+            return new ContractViewModel
+            {
+                EndDate = contract.EndDateLocal,
+                Id = contract.Id,
+                IsActive = contract.IsActive,
+                Lessee = contract.Lessee,
+                LesseeId = contract.Lessee.Id,
+                Lessees = _combosHelper.GetComboLessees(),
+                Owner =contract.Owner,
+                OwnerId = contract.Owner.Id,
+                Price = contract.Price,
+                Property = contract.Property,
+                PropertyId = contract.Property.Id,
+                Remarks = contract.Remarks,
+                StartDate = contract.StartDateLocal
+            };
+        }
+
         public async Task<Property> ToPropertyAsync(PropertyViewModel model, bool isNew)
         {
             return new Property
