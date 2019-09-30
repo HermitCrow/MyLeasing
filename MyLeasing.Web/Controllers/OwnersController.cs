@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MyLeasing.Web.Data;
 using MyLeasing.Web.Data.Entities;
 using MyLeasing.Web.Helpers;
 using MyLeasing.Web.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MyLeasing.Web.Controllers
 {
-    [Authorize(Roles ="Manager")]
+    [Authorize(Roles = "Manager")]
     public class OwnersController : Controller
     {
         private readonly DataContext _dataContext;
@@ -45,7 +44,7 @@ namespace MyLeasing.Web.Controllers
                 .Include(o => o.Contracts));
         }
 
-        
+
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -69,7 +68,7 @@ namespace MyLeasing.Web.Controllers
             return View(owner);
         }
 
-       
+
         public IActionResult Create()
         {
             return View();
@@ -83,7 +82,7 @@ namespace MyLeasing.Web.Controllers
             {
                 var user = await CreateUserAsync(model);
 
-                if(user != null)
+                if (user != null)
                 {
                     var owner = new Owner
                     {
@@ -212,13 +211,13 @@ namespace MyLeasing.Web.Controllers
 
         public async Task<IActionResult> AddProperty(int? id)
         {
-            if(id == null)
+            if (id == null)
             {
                 return NotFound();
             }
 
             var owner = await _dataContext.Owners.FindAsync(id);
-            if(owner == null)
+            if (owner == null)
             {
                 return NotFound();
             }
@@ -243,7 +242,7 @@ namespace MyLeasing.Web.Controllers
                 return RedirectToAction($"Details/{model.OwnerId}");
             }
 
-            return View(model);            
+            return View(model);
         }
 
         public async Task<IActionResult> EditProperty(int? id)
@@ -282,7 +281,7 @@ namespace MyLeasing.Web.Controllers
 
         public async Task<IActionResult> DetailsProperty(int? id)
         {
-            if(id == null)
+            if (id == null)
             {
                 return NotFound();
             }
@@ -297,7 +296,7 @@ namespace MyLeasing.Web.Controllers
                 .Include(o => o.PropertyImages)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
-            if( property == null)
+            if (property == null)
             {
                 return NotFound();
             }
@@ -382,7 +381,7 @@ namespace MyLeasing.Web.Controllers
             return View(model);
         }
 
-        
+
         [HttpPost]
         public async Task<IActionResult> AddContract(ContractViewModel model)
         {
@@ -413,7 +412,7 @@ namespace MyLeasing.Web.Controllers
             if (contract == null)
             {
                 return NotFound();
-            }            
+            }
 
             return View(_converterHelper.ToContractViewModel(contract));
         }
@@ -431,6 +430,47 @@ namespace MyLeasing.Web.Controllers
 
             return View(model);
         }
+
+        public async Task<IActionResult> DeleteImage(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var propertyImage = await _dataContext.PropertyImages
+                .Include(pi => pi.Property)
+                .FirstOrDefaultAsync(pi => pi.Id == id.Value);
+            if (propertyImage == null)
+            {
+                return NotFound();
+            }
+
+            _dataContext.PropertyImages.Remove(propertyImage);
+            await _dataContext.SaveChangesAsync();
+            return RedirectToAction($"{nameof(DetailsProperty)}/{propertyImage.Property.Id}");
+        }
+
+        public async Task<IActionResult> DeleteContract(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var contract = await _dataContext.Contracts
+                .Include(c => c.Property)
+                .FirstOrDefaultAsync(c => c.Id == id.Value);
+            if (contract == null)
+            {
+                return NotFound();
+            }
+
+            _dataContext.Contracts.Remove(contract);
+            await _dataContext.SaveChangesAsync();
+            return RedirectToAction($"{nameof(DetailsProperty)}/{contract.Property.Id}");
+        }
+
 
     }
 }
