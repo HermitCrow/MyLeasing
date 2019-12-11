@@ -147,17 +147,17 @@ namespace MyLeasing.Web.Controllers
                 FirstName = owner.User.FirstName,
                 Id = owner.Id,
                 LastName = owner.User.LastName,
-                PhoneNumber = owner.User.PhoneNumber            
+                PhoneNumber = owner.User.PhoneNumber
             };
 
             return View(model);
         }
 
-      
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditUserViewModel model)
-        {           
+        {
 
             if (ModelState.IsValid)
             {
@@ -176,7 +176,7 @@ namespace MyLeasing.Web.Controllers
             return View(model);
         }
 
-        
+
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -186,7 +186,7 @@ namespace MyLeasing.Web.Controllers
 
             var owner = await _dataContext.Owners
                 .Include(o => o.User)
-                .Include(p=> p.Properties)                
+                .Include(p => p.Properties)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (owner == null)
             {
@@ -205,7 +205,7 @@ namespace MyLeasing.Web.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-     
+
 
         private bool OwnerExists(int id)
         {
@@ -476,9 +476,9 @@ namespace MyLeasing.Web.Controllers
             return RedirectToAction($"{nameof(DetailsProperty)}/{contract.Property.Id}");
         }
 
-        public async Task<IActionResult> DeleteProperty( int? id)
+        public async Task<IActionResult> DeleteProperty(int? id)
         {
-            if(id == null)
+            if (id == null)
             {
                 return NotFound();
             }
@@ -488,18 +488,18 @@ namespace MyLeasing.Web.Controllers
                 .Include(p => p.PropertyImages)
                 .Include(p => p.Contracts)
                 .FirstOrDefaultAsync(pi => pi.Id == id.Value);
-            if(property == null)
+            if (property == null)
             {
                 return NotFound();
             }
 
-            if(property.Contracts.Count != 0)
+            if (property.Contracts.Count != 0)
             {
                 ModelState.AddModelError(string.Empty, "The property can't de deleted because it has contracts.");
                 return RedirectToAction($"{nameof(Details)}/{property.Owner.Id}");
             }
 
-            _dataContext.PropertyImages.RemoveRange(property.PropertyImages);            
+            _dataContext.PropertyImages.RemoveRange(property.PropertyImages);
             _dataContext.Properties.Remove(property);
             await _dataContext.SaveChangesAsync();
             return RedirectToAction($"{nameof(Details)}/{property.Owner.Id}");
