@@ -11,6 +11,7 @@ namespace MyLeasing.Prism.ViewModels
 {
     public class LoginPageViewModel : ViewModelBase
     {
+        private readonly INavigationService _navigationService;
         private readonly IApiService _apiService;
         private string _password;
         private bool _isRunning;
@@ -21,10 +22,11 @@ namespace MyLeasing.Prism.ViewModels
         {
             Title = "Login";
             IsEnabled = true;
+            _navigationService = navigationService;
             _apiService = apiService;
 
             //TODO: Delete this lines
-            Email = "emmanululloa@gmail.com";
+            Email = "master1932@hotmail.com";
             Password = "123456";
         }
         public DelegateCommand LoginCommand => _loginCommand ?? (_loginCommand = new DelegateCommand(Login));       
@@ -64,28 +66,63 @@ namespace MyLeasing.Prism.ViewModels
             IsRunning = true;
             IsEnabled = false;
 
+            var url = App.Current.Resources["UrlApi"].ToString();
+            var connetion = await _apiService.CheckConnetionAsync(url);
+            if (!connetion)
+            {
+                IsRunning = false;
+                IsEnabled = true;
+                await App.Current.MainPage.DisplayAlert("Error", "Check the internet connetion.","Accept");
+                return;
+                  
+
+            }
+
             var request = new TokenRequest
             {
                 Password = Password,
                 Username = Email
             };
-
-            var url = App.Current.Resources["UrlApi"].ToString();
+            
             var response = await _apiService.GetTokenAsync(url, "/Account", "/CreateToken", request);
-
-            IsRunning = false;
-            IsEnabled = true;
+          
 
             if (!response.IsSuccess)
             {
+                IsRunning = false;
+                IsEnabled = true;
                 await App.Current.MainPage.DisplayAlert("Error", "User or password incorrect.", "Accept");
                 Password = string.Empty;
                 return;
             }
 
             var token = response.Result;
+            var response2 = await _apiService.GetOwnerByEmailAsync(
+                url,
+                "api",
+                "/Owners/GetOwnerByEmail",
+                "bearer",
+                token.Token,
+                Email);
 
-            await App.Current.MainPage.DisplayAlert("Ok", "Fuck yeah!!!", "Accept");
+            if (!response2.IsSuccess)
+            {
+                IsRunning = false;
+                IsEnabled = true;
+                await App.Current.MainPage.DisplayAlert("Error", "Problem With user data, Call 1-809-EEU-EEUD.", "Accept");
+                Password = string.Empty;
+                return;
+            }
+
+            var owner = response2.Result;
+            var parameters = new NavigationParameters
+            {
+                { "owner", owner }
+            };
+
+            await _navigationService.NavigateAsync("PropertiesPage",parameters);
+            IsRunning = false;
+            IsEnabled = true;
         }
     }
 }
