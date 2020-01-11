@@ -11,6 +11,7 @@
     <StackLayout
         Padding="10">
         <ListView
+            BackgroundColor="Transparent"
             HasUnevenRows="True"
             ItemsSource="{Binding Properties}"
             SeparatorVisibility="None">
@@ -24,15 +25,17 @@
                                 <TapGestureRecognizer Command="{Binding SelectPropertyCommand}"/>
                             </Frame.GestureRecognizers>
                         <StackLayout>
-                                <ffimageloading:CachedImage                                        
-	                                    Source="{Binding FirstImage}"
-	                                    LoadingPlaceholder= "LoaderImage"
-	                                    ErrorPlaceholder= "ErrorImage"
-	                                    CacheDuration= "50"
-	                                    RetryCount= "3"
-	                                    RetryDelay= "600"
-	                                    DownsampleToViewSize = "true"
-	                                    WidthRequest="200"/>
+                                <ffimageloading:CachedImage 
+                                    Aspect="AspectFit"
+	                                CacheDuration= "50"
+	                                DownsampleToViewSize = "true"
+                                    ErrorPlaceholder= "ErrorImage"
+                                    HeightRequest="200"
+                                    LoadingPlaceholder= "LoaderImage"
+                                    RetryCount= "3"
+	                                RetryDelay= "600"
+                                    Source="{Binding FirstImage}"/>
+                                    
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         
